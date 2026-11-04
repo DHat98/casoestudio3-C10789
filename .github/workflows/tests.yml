@@ -31,5 +31,10 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      - name: Prepare environment
+        run: cp .env.example .env
+
       - name: Run tests
+        env:
+          PAO_DISABLE: 'true'
         run: composer test
