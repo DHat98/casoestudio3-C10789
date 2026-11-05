@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\GrupoFactory;
+use DomainException;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -50,6 +51,47 @@ class Grupo extends Model
             'id',
             'carne',
         )->withPivot('nota');
+    }
+
+    public function asignarDocente(int $codEmpleado): void
+    {
+        $this->getConnection()->transaction(function () use ($codEmpleado): void {
+            $grupo = $this->newQuery()->lockForUpdate()->findOrFail($this->getKey());
+            $docente = Docente::findOrFail($codEmpleado);
+
+            if ($grupo->docentes()->count() >= 2) {
+                throw new DomainException('Un grupo no puede tener más de dos docentes.');
+            }
+
+            $grupo->docentes()->attach($docente->getKey());
+        });
+
+        $this->unsetRelation('docentes');
+    }
+
+    public function puedeAbrirse(): bool
+    {
+        $cantidadDocentes = $this->docentes()->count();
+
+        return $cantidadDocentes >= 1
+            && $cantidadDocentes <= 2
+            && $this->estudiantesMatriculados()->count() >= 15;
+    }
+
+    public function abrir(): void
+    {
+        $this->getConnection()->transaction(function (): void {
+            $grupo = $this->newQuery()->lockForUpdate()->findOrFail($this->getKey());
+
+            if (! $grupo->puedeAbrirse()) {
+                throw new DomainException('El grupo requiere al menos quince estudiantes y uno o dos docentes para abrirse.');
+            }
+
+            $grupo->abierto = true;
+            $grupo->saveOrFail();
+        });
+
+        $this->refresh();
     }
 
     /**
