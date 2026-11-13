@@ -149,7 +149,7 @@ test('CP-13: no permite matricular dos veces al mismo estudiante en un grupo', f
     ]);
 });
 
-test('acepta los límites de la escala de notas', function (float $nota) {
+test('CP-14: acepta los límites de la escala de notas', function (float $nota) {
     $grupo = crearGrupoMatricula();
     $estudiante = crearEstudianteMatricula(crearConsejeroMatricula());
     $grupo->estudiantes()->attach($estudiante->getKey());
@@ -159,7 +159,7 @@ test('acepta los límites de la escala de notas', function (float $nota) {
     expect($grupo->estudiantesMatriculados()->firstOrFail()->nota)->toBe($nota);
 })->with([0.0, 10.0]);
 
-test('no registra una nota si el estudiante no pertenece al grupo', function () {
+test('CP-15: no registra una nota si el estudiante no pertenece al grupo', function () {
     $grupo = crearGrupoMatricula();
     $estudiante = crearEstudianteMatricula(crearConsejeroMatricula());
 
@@ -169,7 +169,7 @@ test('no registra una nota si el estudiante no pertenece al grupo', function () 
     $this->assertDatabaseCount('estudiantes_matriculados', 0);
 });
 
-test('abre el grupo con dos docentes y actualiza la instancia', function () {
+test('CP-16: abre el grupo con dos docentes y actualiza la instancia', function () {
     $grupo = crearGrupoMatricula();
     $docentes = Docente::factory()->count(2)->create();
     $estudiantes = Estudiante::factory()->count(15)->for($docentes->first(), 'consejero')->create();
@@ -183,7 +183,7 @@ test('abre el grupo con dos docentes y actualiza la instancia', function () {
     $this->assertDatabaseHas('grupos', ['id' => $grupo->getKey(), 'abierto' => true]);
 });
 
-test('un grupo con tres docentes registrados no puede abrirse', function () {
+test('CP-17: un grupo con tres docentes registrados no puede abrirse', function () {
     $grupo = crearGrupoMatricula();
     $docentes = Docente::factory()->count(3)->create();
     $estudiantes = Estudiante::factory()->count(15)->for($docentes->first(), 'consejero')->create();
@@ -195,7 +195,7 @@ test('un grupo con tres docentes registrados no puede abrirse', function () {
     $this->assertDatabaseHas('grupos', ['id' => $grupo->getKey(), 'abierto' => false]);
 });
 
-test('actualiza las relaciones ya cargadas al registrar una nota', function () {
+test('CP-18: actualiza las relaciones ya cargadas al registrar una nota', function () {
     $grupo = crearGrupoMatricula();
     $estudiante = crearEstudianteMatricula(crearConsejeroMatricula());
     $grupo->estudiantes()->attach($estudiante->getKey());
@@ -210,7 +210,7 @@ test('actualiza las relaciones ya cargadas al registrar una nota', function () {
     ]);
 });
 
-test('interpreta los identificadores numéricos del grupo como enteros', function () {
+test('CP-19: interpreta los identificadores numéricos del grupo como enteros', function () {
     $grupo = new Grupo([
         'numeroCiclo' => '2',
         'ano' => '2026',

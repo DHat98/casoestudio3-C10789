@@ -5,7 +5,7 @@ use App\Models\Estudiante;
 use App\Models\Grupo;
 use Illuminate\Support\Facades\DB;
 
-test('la migración conserva matrículas, consejeros y docentes existentes', function () {
+test('CP-20: la migración conserva matrículas, consejeros y docentes existentes', function () {
     $docente = Docente::factory()->create();
     $estudiante = Estudiante::factory()->for($docente, 'consejero')->create();
     $grupo = Grupo::factory()->create();
