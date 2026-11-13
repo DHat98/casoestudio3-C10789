@@ -73,18 +73,18 @@ test('CP-02: un curso tiene tres grupos y distingue los dos abiertos', function 
 test('CP-03: asigna dos docentes al grupo y mantiene la relación inversa', function () {
     $grupo = crearGrupo();
     $ana = crearDocente();
-    Docente::factory()->create([
+    $luis = Docente::factory()->create([
         'codEmpleado' => 1002, 'nombreEmpleado' => 'Luis', 'apellidosEmpleado' => 'Rojas Solano',
     ]);
     $grupo->load('docentes');
 
-    $grupo->asignarDocente(1001);
-    $grupo->asignarDocente(1002);
+    $grupo->asignarDocente($ana);
+    $grupo->asignarDocente($luis);
 
     expect($grupo->docentes)->toHaveCount(2)
         ->and($grupo->docentes->modelKeys())->toEqualCanonicalizing([1001, 1002])
         ->and($ana->grupos->modelKeys())->toBe([$grupo->getKey()]);
-    $this->assertDatabaseCount('docente_grupo', 2);
+    $this->assertDatabaseCount('grupo_docente', 2);
 });
 
 test('CP-04: rechaza un tercer docente sin modificar las asignaciones existentes', function () {
@@ -93,17 +93,17 @@ test('CP-04: rechaza un tercer docente sin modificar las asignaciones existentes
     Docente::factory()->create([
         'codEmpleado' => 1002, 'nombreEmpleado' => 'Luis', 'apellidosEmpleado' => 'Rojas Solano',
     ]);
-    Docente::factory()->create([
+    $carla = Docente::factory()->create([
         'codEmpleado' => 1003, 'nombreEmpleado' => 'Carla', 'apellidosEmpleado' => 'Jiménez Araya',
     ]);
     $grupo->docentes()->attach([1001, 1002]);
 
-    expect(fn () => $grupo->asignarDocente(1003))
+    expect(fn () => $grupo->asignarDocente($carla))
         ->toThrow(DomainException::class, 'Un grupo no puede tener más de dos docentes.');
 
     expect($grupo->fresh()->docentes->modelKeys())->toEqualCanonicalizing([1001, 1002]);
-    $this->assertDatabaseCount('docente_grupo', 2);
-    $this->assertDatabaseMissing('docente_grupo', [
+    $this->assertDatabaseCount('grupo_docente', 2);
+    $this->assertDatabaseMissing('grupo_docente', [
         'grupo_id' => $grupo->getKey(), 'docente_id' => 1003,
     ]);
 });
@@ -112,7 +112,7 @@ test('CP-05: un grupo con catorce estudiantes no puede abrirse', function () {
     $grupo = crearGrupo();
     $docente = crearDocente();
     $grupo->docentes()->attach($docente->getKey());
-    $estudiantes = Estudiante::factory()->count(14)->for($docente, 'docenteConsejero')->create();
+    $estudiantes = Estudiante::factory()->count(14)->for($docente, 'consejero')->create();
     $grupo->estudiantes()->attach($estudiantes->modelKeys());
 
     expect($grupo->puedeAbrirse())->toBeFalse();
@@ -121,14 +121,14 @@ test('CP-05: un grupo con catorce estudiantes no puede abrirse', function () {
 
     expect($grupo->fresh()->abierto)->toBeFalse();
     $this->assertDatabaseHas('grupos', ['id' => $grupo->getKey(), 'abierto' => false]);
-    $this->assertDatabaseCount('estudiante_matriculados', 14);
+    $this->assertDatabaseCount('estudiantes_matriculados', 14);
 });
 
 test('CP-06: abre el grupo con quince estudiantes y un docente', function () {
     $grupo = crearGrupo();
     $docente = crearDocente();
     $grupo->docentes()->attach($docente->getKey());
-    $estudiantes = Estudiante::factory()->count(15)->for($docente, 'docenteConsejero')->create();
+    $estudiantes = Estudiante::factory()->count(15)->for($docente, 'consejero')->create();
     $grupo->estudiantes()->attach($estudiantes->modelKeys());
 
     expect($grupo->puedeAbrirse())->toBeTrue();
@@ -136,6 +136,6 @@ test('CP-06: abre el grupo con quince estudiantes y un docente', function () {
 
     expect($grupo->fresh()->abierto)->toBeTrue();
     $this->assertDatabaseHas('grupos', ['id' => $grupo->getKey(), 'abierto' => true]);
-    $this->assertDatabaseCount('estudiante_matriculados', 15);
-    $this->assertDatabaseCount('docente_grupo', 1);
+    $this->assertDatabaseCount('estudiantes_matriculados', 15);
+    $this->assertDatabaseCount('grupo_docente', 1);
 });

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['carne', 'nombre', 'apellidos', 'docente_id'])]
+#[Fillable(['carne', 'nombre', 'apellidos', 'consejero_id'])]
 class Estudiante extends Model
 {
     /** @use HasFactory<EstudianteFactory> */
@@ -24,25 +24,25 @@ class Estudiante extends Model
 
     protected $keyType = 'string';
 
-    public function docenteConsejero(): BelongsTo
+    public function consejero(): BelongsTo
     {
-        return $this->belongsTo(Docente::class, 'docente_id', 'codEmpleado');
+        return $this->belongsTo(Docente::class, 'consejero_id', 'codEmpleado');
     }
 
     public function matriculas(): HasMany
     {
-        return $this->hasMany(EstudianteMatriculado::class, 'estudiante_carne', 'carne');
+        return $this->hasMany(EstudianteMatriculado::class, 'estudiante_id', 'carne');
     }
 
     public function grupos(): BelongsToMany
     {
         return $this->belongsToMany(
             Grupo::class,
-            'estudiante_matriculados',
-            'estudiante_carne',
+            'estudiantes_matriculados',
+            'estudiante_id',
             'grupo_id',
             'carne',
             'id',
-        )->withPivot('nota');
+        )->using(EstudianteMatriculado::class)->withPivot('nota');
     }
 }

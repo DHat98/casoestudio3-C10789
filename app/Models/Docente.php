@@ -23,7 +23,7 @@ class Docente extends Model
     {
         return $this->belongsToMany(
             Grupo::class,
-            'docente_grupo',
+            'grupo_docente',
             'docente_id',
             'grupo_id',
             'codEmpleado',
@@ -31,8 +31,8 @@ class Docente extends Model
         );
     }
 
-    public function estudiantesConsejados(): HasMany
+    public function estudiantes(): HasMany
     {
-        return $this->hasMany(Estudiante::class, 'docente_id', 'codEmpleado');
+        return $this->hasMany(Estudiante::class, 'consejero_id', 'codEmpleado');
     }
 }

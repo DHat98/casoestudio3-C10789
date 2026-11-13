@@ -5,16 +5,16 @@ namespace App\Models;
 use Database\Factories\EstudianteMatriculadoFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-#[Fillable(['grupo_id', 'estudiante_carne', 'nota'])]
-class EstudianteMatriculado extends Model
+#[Fillable(['grupo_id', 'estudiante_id', 'nota'])]
+class EstudianteMatriculado extends Pivot
 {
     /** @use HasFactory<EstudianteMatriculadoFactory> */
     use HasFactory;
 
-    protected $table = 'estudiante_matriculados';
+    protected $table = 'estudiantes_matriculados';
 
     public function grupo(): BelongsTo
     {
@@ -23,7 +23,7 @@ class EstudianteMatriculado extends Model
 
     public function estudiante(): BelongsTo
     {
-        return $this->belongsTo(Estudiante::class, 'estudiante_carne', 'carne');
+        return $this->belongsTo(Estudiante::class, 'estudiante_id', 'carne');
     }
 
     /**

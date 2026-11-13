@@ -4,9 +4,6 @@ use App\Models\Curso;
 use App\Models\Docente;
 use App\Models\Estudiante;
 use App\Models\Grupo;
-use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
-
-uses(LazilyRefreshDatabase::class);
 
 test('a group belongs to one course and a course has many groups', function () {
     $course = Curso::factory()->create();
@@ -31,19 +28,19 @@ test('a student enrollment associates a group and student and stores the grade',
     $student = Estudiante::factory()->create();
 
     $enrollment = $group->estudiantesMatriculados()->create([
-        'estudiante_carne' => $student->getKey(),
-        'nota' => 91.5,
+        'estudiante_id' => $student->getKey(),
+        'nota' => 8.5,
     ]);
 
     expect($enrollment->grupo->is($group))->toBeTrue()
         ->and($enrollment->estudiante->is($student))->toBeTrue()
-        ->and($group->estudiantes()->first()->pivot->nota)->toBe(91.5);
+        ->and($group->estudiantes()->first()->pivot->nota)->toBe(8.5);
 });
 
 test('a student has one advisor and a teacher advises multiple students', function () {
     $teacher = Docente::factory()->create();
-    $student = Estudiante::factory()->for($teacher, 'docenteConsejero')->create();
+    $student = Estudiante::factory()->for($teacher, 'consejero')->create();
 
-    expect($student->docenteConsejero->is($teacher))->toBeTrue()
-        ->and($teacher->estudiantesConsejados->contains($student))->toBeTrue();
+    expect($student->consejero->is($teacher))->toBeTrue()
+        ->and($teacher->estudiantes->contains($student))->toBeTrue();
 });

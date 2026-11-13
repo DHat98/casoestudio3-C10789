@@ -1,9 +1,5 @@
 <?php
 
-use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
-
-uses(LazilyRefreshDatabase::class);
-
 test('a guest saves a course and receives 201', function () {
     $payload = [
         'sigla' => 'IF6100',

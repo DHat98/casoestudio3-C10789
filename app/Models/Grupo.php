@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use InvalidArgumentException;
 
 #[Fillable(['curso_sigla', 'numeroCiclo', 'ano', 'numeroGrupo', 'abierto'])]
 class Grupo extends Model
@@ -28,7 +29,7 @@ class Grupo extends Model
     {
         return $this->belongsToMany(
             Docente::class,
-            'docente_grupo',
+            'grupo_docente',
             'grupo_id',
             'docente_id',
             'id',
@@ -45,19 +46,18 @@ class Grupo extends Model
     {
         return $this->belongsToMany(
             Estudiante::class,
-            'estudiante_matriculados',
+            'estudiantes_matriculados',
             'grupo_id',
-            'estudiante_carne',
+            'estudiante_id',
             'id',
             'carne',
-        )->withPivot('nota');
+        )->using(EstudianteMatriculado::class)->withPivot('nota');
     }
 
-    public function asignarDocente(int $codEmpleado): void
+    public function asignarDocente(Docente $docente): void
     {
-        $this->getConnection()->transaction(function () use ($codEmpleado): void {
+        $this->getConnection()->transaction(function () use ($docente): void {
             $grupo = $this->newQuery()->lockForUpdate()->findOrFail($this->getKey());
-            $docente = Docente::findOrFail($codEmpleado);
 
             if ($grupo->docentes()->count() >= 2) {
                 throw new DomainException('Un grupo no puede tener más de dos docentes.');
@@ -92,6 +92,22 @@ class Grupo extends Model
         });
 
         $this->refresh();
+    }
+
+    public function registrarNota(Estudiante $estudiante, float $nota): void
+    {
+        if (! is_finite($nota) || $nota < 0 || $nota > 10) {
+            throw new InvalidArgumentException('La nota debe estar entre 0 y 10.');
+        }
+
+        $matricula = $this->estudiantesMatriculados()
+            ->where('estudiante_id', $estudiante->getKey())
+            ->firstOrFail();
+        $matricula->nota = $nota;
+        $matricula->saveOrFail();
+
+        $this->unsetRelation('estudiantes');
+        $this->unsetRelation('estudiantesMatriculados');
     }
 
     /**

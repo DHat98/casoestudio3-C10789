@@ -21,8 +21,8 @@ class EstudianteMatriculadoFactory extends Factory
     {
         return [
             'grupo_id' => Grupo::factory(),
-            'estudiante_carne' => Estudiante::factory(),
-            'nota' => fake()->randomFloat(2, 0, 100),
+            'estudiante_id' => Estudiante::factory(),
+            'nota' => null,
         ];
     }
 }
